@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { FiChevronRight, FiGrid, FiList } from 'react-icons/fi'
 import ForceGraph3D from '3d-force-graph'
-import { ForceGraph3DInstance } from '3d-force-graph'
 
 // 定义类型以避免使用 any
 interface GraphNode {
