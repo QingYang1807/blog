@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from 'react'
 import { FiChevronRight, FiGrid, FiList } from 'react-icons/fi'
 import * as d3 from 'd3'
+import LoginCard from './LoginCard'
 
 // 定义类型
 interface CategoryNode {
@@ -25,6 +26,25 @@ interface GraphNode extends d3.SimulationNodeDatum {
 interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
   source: string | GraphNode
   target: string | GraphNode
+}
+
+interface User {
+  name: string
+  avatar: string
+  badges: {
+    id: string
+    name: string
+    icon: string
+  }[]
+}
+
+interface LoginForm {
+  username: string
+  password: string
+}
+
+interface RegisterForm extends LoginForm {
+  email: string
 }
 
 // 分类数据
@@ -61,6 +81,34 @@ const categoryData: CategoryNode = {
       ]
     },
   ]
+}
+
+// 添加示例用户数据
+const mockUser: User = {
+  name: "张三",
+  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+  badges: [
+    { id: "1", name: "精选作者", icon: "🏆" },
+    { id: "2", name: "活跃用户", icon: "⭐" }
+  ]
+}
+
+// 在 mockUser 后添加模拟 API 函数
+const mockApi = {
+  login: async (form: LoginForm): Promise<User | null> => {
+    // 模拟 API 调用
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    if (form.username === 'demo' && form.password === 'password') {
+      return mockUser
+    }
+    return null
+  },
+  
+  register: async (form: RegisterForm): Promise<User | null> => {
+    // 模拟 API 调用
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    return mockUser
+  }
 }
 
 // 将树形数据转换为图谱数据
@@ -214,6 +262,33 @@ function KnowledgeGraph({ data }: { data: { nodes: GraphNode[], links: GraphLink
 export default function CategoryView() {
   const [viewMode, setViewMode] = React.useState<'tree' | 'graph'>('tree')
   const [expandedNodes, setExpandedNodes] = React.useState<Set<string>>(new Set(['root']))
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false)
+  const [user, setUser] = React.useState<User | null>(null)
+  const [isLoading, setIsLoading] = React.useState(false)
+
+  // 处理登录
+  const HandleLogin = async (form: LoginForm) => {
+    try {
+      setIsLoading(true)
+      const userData = await mockApi.login(form)
+      if (userData) {
+        setUser(userData)
+        setIsLoggedIn(true)
+        // TODO: 保存登录状态到 localStorage 或 Cookie
+      }
+    } catch (error) {
+      console.error('登录失败:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // 处理登出
+  const HandleLogout = () => {
+    setUser(null)
+    setIsLoggedIn(false)
+    // TODO: 清除 localStorage 或 Cookie 中的登录状态
+  }
 
   // 处理节点展开/收起
   const toggleNode = (nodeId: string) => {
@@ -266,6 +341,39 @@ export default function CategoryView() {
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-4">
+      {isLoggedIn && user ? (
+        // 已登录状态：显示用户信息
+        <div className="mb-4 p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <img 
+                src={user.avatar} 
+                alt={user.name}
+                className="w-12 h-12 rounded-full border-2 border-primary cursor-pointer"
+                onClick={HandleLogout}
+                title="点击退出登录"
+              />
+              <div>
+                <h4 className="font-medium text-lg">{user.name}</h4>
+                <div className="flex gap-2 mt-1">
+                  {user.badges.map(badge => (
+                    <span 
+                      key={badge.id}
+                      className="inline-flex items-center gap-1 py-1 rounded-full text-sm bg-primary/10 text-primary"
+                    >
+                      {badge.icon} {badge.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        // 未登录状态：显示登录卡片
+        <LoginCard onLogin={HandleLogin} isLoading={isLoading} />
+      )}
+
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold">文章分类</h3>
         <div className="flex gap-2">

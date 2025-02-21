@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { FiFeather, FiGithub, FiTwitter } from 'react-icons/fi'
 import CategoryView from '@/components/CategoryView'
 import Announcement from '@/components/Announcement'
-import LoginCard from '@/components/LoginCard'
 
 export default function HomePage() {
   return (
@@ -68,7 +67,6 @@ export default function HomePage() {
           </div>
 
           <div className="w-full md:w-80 space-y-6">
-            <LoginCard />
             <CategoryView />
 
             {/* 订阅卡片 */}
