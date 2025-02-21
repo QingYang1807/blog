@@ -106,6 +106,7 @@ const mockApi = {
   
   register: async (form: RegisterForm): Promise<User | null> => {
     // 模拟 API 调用
+    console.log(form)
     await new Promise(resolve => setTimeout(resolve, 1000))
     return mockUser
   }
