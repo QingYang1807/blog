@@ -48,6 +48,10 @@ export default {
       animation: {
         slideDown: 'slideDown 0.2s ease-out',
       },
+      backdropFilter: {
+        'none': 'none',
+        'blur': 'blur(20px)',
+      },
     },
   },
   plugins: [],
