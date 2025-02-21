@@ -1,101 +1,127 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import React from 'react'
+import Link from 'next/link'
+import { FiFeather, FiGithub, FiTwitter } from 'react-icons/fi'
+import CategoryView from '@/components/CategoryView'
+import Announcement from '@/components/Announcement'
+import LoginCard from '@/components/LoginCard'
+
+export default function HomePage() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="min-h-screen bg-background text-foreground">
+      {/* 导航栏 */}
+      <nav className="sticky top-0 z-50 backdrop-blur-md bg-background/80 border-b border-border/40">
+        <div className="container mx-auto px-4 h-14 flex justify-between items-center">
+          <Link href="/" className="text-xl font-bold flex items-center gap-2">
+            <FiFeather className="text-primary" />
+            <span className="bg-gradient-to-r from-primary to-purple-600 text-transparent bg-clip-text">
+              TechBlog
+            </span>
+          </Link>
+          <div className="flex gap-6 items-center">
+            <Link href="/articles" className="hover:text-primary transition-colors">文章</Link>
+            <Link href="/categories" className="hover:text-primary transition-colors">分类</Link>
+            <Link href="/about" className="hover:text-primary transition-colors">关于</Link>
+          </div>
+        </div>
+      </nav>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <main className="flex min-h-screen flex-col items-center justify-between">
+        <div className="w-full max-w-7xl mx-auto px-4 flex flex-col md:flex-row gap-6 py-8">
+          <div className="flex-1 min-w-0">
+            <Announcement />
+            {/* 最新文章列表 */}
+            <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-semibold mb-6 text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                <span className="i-mdi-clock-outline w-5 h-5"></span>
+                最新文章
+              </h2>
+              <div className="space-y-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <article key={i} className="group bg-white dark:bg-gray-800 rounded-xl p-4 hover:shadow-lg transition-all">
+                    <div className="flex gap-4">
+                      <div className="w-24 h-24 flex-shrink-0 rounded-lg bg-gradient-to-br from-primary/40 to-purple-500/40" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex gap-2 mb-2">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">技术</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">React</span>
+                        </div>
+                        <h3 className="text-lg font-semibold mb-2 truncate group-hover:text-primary transition-colors">
+                          构建现代化的Web应用：从设计到部署的最佳实践
+                        </h3>
+                        <p className="text-muted-foreground text-sm line-clamp-2">
+                          探索最新的前端技术栈，包括React、Next.js、TypeScript等，了解如何构建高性能的Web应用。
+                        </p>
+                        <div className="flex justify-between items-center mt-2">
+                          <span className="text-xs text-muted-foreground">2024-03-21</span>
+                          <Link href={`/article/${i}`} className="text-primary hover:text-primary/80 transition-colors text-sm">
+                            阅读更多 →
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full md:w-80 space-y-6">
+            <LoginCard />
+            <CategoryView />
+
+            {/* 订阅卡片 */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4">
+              <h3 className="text-lg font-semibold mb-4">订阅更新</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                获取最新的技术文章和见解
+              </p>
+              <div className="flex gap-2">
+                <input 
+                  type="email" 
+                  placeholder="输入邮箱" 
+                  className="flex-1 px-3 py-2 rounded-lg bg-background border border-border focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm"
+                />
+                <button className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors text-sm">
+                  订阅
+                </button>
+              </div>
+            </div>
+
+            {/* 关于卡片 */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-4">
+              <h3 className="text-lg font-semibold mb-4">关于博主</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                全栈开发者，热爱技术，专注于Web开发和工程实践
+              </p>
+              <div className="flex gap-3">
+                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                  <FiGithub size={18} />
+                </a>
+                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                  <FiTwitter size={18} />
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      {/* 简化的页脚 */}
+      <footer className="border-t border-border/40 mt-8">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="text-sm text-muted-foreground">
+              © 2024 TechBlog. 保留所有权利.
+            </div>
+            <div className="flex gap-6">
+              <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">隐私政策</Link>
+              <Link href="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">使用条款</Link>
+            </div>
+          </div>
+        </div>
       </footer>
     </div>
-  );
+  )
 }
