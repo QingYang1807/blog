@@ -143,7 +143,7 @@ function KnowledgeGraph({ data }: { data: { nodes: GraphNode[], links: GraphLink
 
     // 创建节点组
     const nodes = container.append('g')
-      .selectAll('g')
+      .selectAll<SVGGElement, GraphNode>('g')
       .data(data.nodes)
       .join('g')
       .call(d3.drag<SVGGElement, GraphNode>()
