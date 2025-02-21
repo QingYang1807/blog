@@ -38,16 +38,16 @@ export default function RegisterPage() {
     fpsLimit: 120,
     particles: {
       color: {
-        value: theme === 'dark' ? "#ffffff" : "#6366f1",
+        value: '#ffffff',
       },
       move: {
-        direction: "none",
+        direction: 'none' as const,
         enable: true,
         outModes: {
-          default: "bounce",
+          default: 'bounce',
         },
-        random: true,
-        speed: 3,
+        random: false,
+        speed: 1,
         straight: false,
       },
       number: {
@@ -66,7 +66,7 @@ export default function RegisterPage() {
         },
       },
       shape: {
-        type: ["circle", "star", "triangle"],
+        type: 'circle',
       },
       size: {
         value: { min: 1, max: 3 },
@@ -80,7 +80,7 @@ export default function RegisterPage() {
         particles: {
           enable: true,
           frequency: 0.05,
-          opacity: 0.8,
+          opacity: 1,
         },
       },
     },
