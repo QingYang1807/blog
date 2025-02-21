@@ -1,11 +1,9 @@
 'use client'
 
-import React, { useCallback, useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { FiSun, FiMoon } from 'react-icons/fi'
-import type { Engine } from '@tsparticles/engine'
 import Particles from '@tsparticles/react'
-import { loadSlim } from '@tsparticles/slim'
 import type { ISourceOptions, OutMode } from '@tsparticles/engine'
 
 export default function RegisterPage() {
@@ -25,10 +23,6 @@ export default function RegisterPage() {
     localStorage.setItem('theme', newTheme)
     document.documentElement.classList.toggle('dark')
   }
-
-  const particlesInit = useCallback(async (engine: Engine) => {
-    await loadSlim(engine)
-  }, [])
 
   const particlesOptions: ISourceOptions = {
     background: {
@@ -64,7 +58,7 @@ export default function RegisterPage() {
         animation: {
           enable: true,
           speed: 1,
-          startValue: 0.1,
+          startValue: "random",
         },
       },
       shape: {
@@ -75,7 +69,7 @@ export default function RegisterPage() {
         animation: {
           enable: true,
           speed: 2,
-          startValue: 0.1,
+          startValue: "random",
         },
       },
       twinkle: {
@@ -107,7 +101,6 @@ export default function RegisterPage() {
 
       <Particles
         id="tsparticles"
-        init={particlesInit}
         options={particlesOptions}
         className="absolute inset-0 -z-10"
       />
