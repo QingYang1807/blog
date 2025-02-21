@@ -6,6 +6,7 @@ import { FiSun, FiMoon } from 'react-icons/fi'
 import type { Engine } from '@tsparticles/engine'
 import Particles from '@tsparticles/react'
 import { loadSlim } from '@tsparticles/slim'
+import type { ISourceOptions, OutMode } from '@tsparticles/engine'
 
 export default function RegisterPage() {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark')
@@ -29,7 +30,7 @@ export default function RegisterPage() {
     await loadSlim(engine)
   }, [])
 
-  const particlesOptions = {
+  const particlesOptions: ISourceOptions = {
     background: {
       color: {
         value: 'transparent',
@@ -44,7 +45,7 @@ export default function RegisterPage() {
         direction: 'none' as const,
         enable: true,
         outModes: {
-          default: 'bounce',
+          default: 'bounce' as OutMode,
         },
         random: false,
         speed: 1,
