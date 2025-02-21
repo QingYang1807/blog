@@ -147,73 +147,28 @@ export default function CategoryView() {
       const graphData = convertToGraphData(categoryData)
       
       // 创建图谱实例
-      const Graph = ForceGraph3D()(graphRef.current)
+      const Graph = new ForceGraph3D()(graphRef.current)
         .graphData(graphData)
         .nodeLabel((node: GraphNode) => node.name)
         .nodeColor((node: GraphNode) => node.color)
-        .nodeVal((node: GraphNode) => (node.val || 10) * 0.5)
-        .nodeThreeObject((node: GraphNode) => {
-          const sprite = new THREE.Sprite(
-            new THREE.SpriteMaterial({
-              map: new THREE.CanvasTexture(
-                (() => {
-                  const canvas = document.createElement('canvas');
-                  const ctx = canvas.getContext('2d')!;
-                  const fontSize = 48;
-                  ctx.font = `${fontSize}px Arial`;
-                  const textWidth = ctx.measureText(node.name).width;
-                  
-                  canvas.width = textWidth + 20;
-                  canvas.height = fontSize + 20;
-                  
-                  ctx.fillStyle = 'rgba(255,255,255,0.2)';
-                  ctx.fillRect(0, 0, canvas.width, canvas.height);
-                  
-                  ctx.font = `${fontSize}px Arial`;
-                  ctx.fillStyle = node.color;
-                  ctx.textAlign = 'center';
-                  ctx.textBaseline = 'middle';
-                  ctx.fillText(node.name, canvas.width/2, canvas.height/2);
-                  
-                  return canvas;
-                })()
-              )
-            })
-          );
-          sprite.scale.set(20, 10, 1);
-          return sprite;
-        })
-        .linkWidth(0.5)
-        .linkOpacity(0.3)
+        .linkColor(() => 'rgba(255, 255, 255, 0.2)')
         .backgroundColor('rgba(0,0,0,0)')
         .width(graphRef.current.clientWidth)
-        .height(400);
+        .height(300)
 
-      // 单独设置力导向参数
-      Graph.d3Force('charge')?.strength(-100);
-      Graph.d3Force('link')?.distance(50);
+      // 添加窗口大小变化监听
+      const handleResize = () => {
+        if (graphRef.current) {
+          Graph.width(graphRef.current.clientWidth)
+        }
+      }
 
-      // 添加自动旋转
-      let angle = 0
-      const rotationInterval = setInterval(() => {
-        Graph.cameraPosition({
-          x: 200 * Math.cos(angle),
-          z: 200 * Math.sin(angle)
-        });
-        angle += 0.001
-      }, 10)
+      window.addEventListener('resize', handleResize)
 
-      graphInstanceRef.current = Graph
-      
       // 清理函数
       return () => {
-        clearInterval(rotationInterval)
-        if (graphRef.current) {
-          // 停止图谱渲染
-          Graph._destructor();
-          graphRef.current.innerHTML = ''
-          graphInstanceRef.current = null
-        }
+        window.removeEventListener('resize', handleResize)
+        Graph.dispose()
       }
     }
   }, [viewMode])
@@ -247,7 +202,7 @@ export default function CategoryView() {
           {renderTreeNode(categoryData)}
         </div>
       ) : (
-        <div key="3d" ref={graphRef} className="w-full h-[400px]" />
+        <div key="3d" ref={graphRef} className="w-full h-[300px]" />
       )}
     </div>
   )
