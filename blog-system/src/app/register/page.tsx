@@ -3,7 +3,7 @@
 import React, { useCallback, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { FiSun, FiMoon } from 'react-icons/fi'
-import type { Engine } from 'tsparticles-engine'
+import type { Engine } from '@tsparticles/engine'
 import Particles from '@tsparticles/react'
 import { loadSlim } from '@tsparticles/slim'
 
@@ -29,6 +29,63 @@ export default function RegisterPage() {
     await loadSlim(engine)
   }, [])
 
+  const particlesOptions = {
+    background: {
+      color: {
+        value: 'transparent',
+      },
+    },
+    fpsLimit: 120,
+    particles: {
+      color: {
+        value: theme === 'dark' ? "#ffffff" : "#6366f1",
+      },
+      move: {
+        direction: "none",
+        enable: true,
+        outModes: {
+          default: "bounce",
+        },
+        random: true,
+        speed: 3,
+        straight: false,
+      },
+      number: {
+        density: {
+          enable: true,
+          value_area: 800,
+        },
+        value: 40,
+      },
+      opacity: {
+        value: 0.4,
+        anim: {
+          enable: true,
+          speed: 1,
+          opacity_min: 0.1,
+        },
+      },
+      shape: {
+        type: ["circle", "star", "triangle"],
+      },
+      size: {
+        value: { min: 1, max: 3 },
+        anim: {
+          enable: true,
+          speed: 2,
+          size_min: 0.1,
+        },
+      },
+      twinkle: {
+        particles: {
+          enable: true,
+          frequency: 0.05,
+          opacity: 0.8,
+        },
+      },
+    },
+  }
+
   return (
     <div className={`min-h-screen relative flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 
       ${theme === 'dark' 
@@ -49,54 +106,7 @@ export default function RegisterPage() {
       <Particles
         id="tsparticles"
         init={particlesInit}
-        options={{
-          background: {
-            color: {
-              value: 'transparent',
-            },
-          },
-          fpsLimit: 120,
-          particles: {
-            color: {
-              value: theme === 'dark' ? "#ffffff" : "#6366f1",
-            },
-            move: {
-              direction: "none",
-              enable: true,
-              outModes: {
-                default: "bounce",
-              },
-              random: true,
-              speed: 3,
-              straight: false,
-            },
-            number: {
-              density: {
-                enable: true,
-                area: 800,
-              },
-              value: 40,
-            },
-            opacity: {
-              value: 0.4,
-              random: true,
-            },
-            shape: {
-              type: ["circle", "star", "triangle"],
-            },
-            size: {
-              value: { min: 1, max: 3 },
-              random: true,
-            },
-            twinkle: {
-              particles: {
-                enable: true,
-                frequency: 0.05,
-                opacity: 0.8,
-              },
-            },
-          },
-        }}
+        options={particlesOptions}
         className="absolute inset-0 -z-10"
       />
 

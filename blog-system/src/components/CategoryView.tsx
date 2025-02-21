@@ -1,22 +1,10 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { FiChevronRight, FiGrid, FiList } from 'react-icons/fi'
-import ForceGraph3D from '3d-force-graph'
+import * as d3 from 'd3'
 
-// 定义类型以避免使用 any
-interface GraphNode {
-  id: string
-  name: string
-  val: number
-  color: string
-}
-
-interface GraphLink {
-  source: string
-  target: string
-}
-
+// 定义类型
 interface CategoryNode {
   id: string
   name: string
@@ -25,6 +13,21 @@ interface CategoryNode {
   color?: string
 }
 
+interface GraphNode extends d3.SimulationNodeDatum {
+  id: string
+  name: string
+  count: number
+  color: string
+  x?: number
+  y?: number
+}
+
+interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
+  source: string | GraphNode
+  target: string | GraphNode
+}
+
+// 分类数据
 const categoryData: CategoryNode = {
   id: 'root',
   name: '全部分类',
@@ -69,7 +72,7 @@ const convertToGraphData = (tree: CategoryNode) => {
     nodes.push({
       id: node.id,
       name: node.name,
-      val: node.count || 10,
+      count: node.count || 10,
       color: node.color || '#666',
     })
     
@@ -87,10 +90,130 @@ const convertToGraphData = (tree: CategoryNode) => {
   return { nodes, links }
 }
 
+// 知识图谱组件
+function KnowledgeGraph({ data }: { data: { nodes: GraphNode[], links: GraphLink[] } }) {
+  const svgRef = useRef<SVGSVGElement>(null)
+
+  useEffect(() => {
+    if (!svgRef.current) return
+
+    // 清除旧的内容
+    d3.select(svgRef.current).selectAll('*').remove()
+
+    // 设置画布尺寸和边距
+    const width = svgRef.current.clientWidth
+    const height = 400
+    const margin = { top: 20, right: 20, bottom: 20, left: 20 }
+
+    // 创建SVG
+    const svg = d3.select(svgRef.current)
+      .attr('width', width)
+      .attr('height', height)
+
+    // 创建缩放和平移行为
+    const zoom = d3.zoom<SVGSVGElement, unknown>()
+      .scaleExtent([0.5, 2])
+      .on('zoom', (event) => {
+        container.attr('transform', event.transform)
+      })
+
+    svg.call(zoom)
+
+    // 创建容器组
+    const container = svg.append('g')
+      .attr('transform', `translate(${margin.left},${margin.top})`)
+
+    // 创建力导向模拟
+    const simulation = d3.forceSimulation<GraphNode>(data.nodes)
+      .force('link', d3.forceLink<GraphNode, GraphLink>(data.links)
+        .id(d => d.id)
+        .distance(80))
+      .force('charge', d3.forceManyBody().strength(-200))
+      .force('center', d3.forceCenter(width / 2, height / 2))
+      .force('collision', d3.forceCollide().radius(50))
+
+    // 绘制连线
+    const links = container.append('g')
+      .selectAll('line')
+      .data(data.links)
+      .join('line')
+      .attr('stroke', '#999')
+      .attr('stroke-opacity', 0.3)
+      .attr('stroke-width', 1)
+
+    // 创建节点组
+    const nodes = container.append('g')
+      .selectAll('g')
+      .data(data.nodes)
+      .join('g')
+      .call(d3.drag<SVGGElement, GraphNode>()
+        .on('start', dragstarted)
+        .on('drag', dragged)
+        .on('end', dragended))
+
+    // 添加节点背景
+    nodes.append('rect')
+      .attr('rx', 4)
+      .attr('ry', 4)
+      .attr('fill', 'white')
+      .attr('stroke', d => d.color)
+      .attr('stroke-width', 2)
+      .attr('width', d => d.name.length * 14 + 20)
+      .attr('height', 28)
+      .attr('x', d => -(d.name.length * 14 + 20) / 2)
+      .attr('y', -14)
+
+    // 添加节点文本
+    nodes.append('text')
+      .text(d => d.name)
+      .attr('text-anchor', 'middle')
+      .attr('dominant-baseline', 'middle')
+      .attr('fill', '#1a1a1a')
+      .attr('font-size', '14px')
+      .attr('font-weight', '500')
+
+    // 更新力导向布局
+    simulation.on('tick', () => {
+      links
+        .attr('x1', d => (d.source as GraphNode).x!)
+        .attr('y1', d => (d.source as GraphNode).y!)
+        .attr('x2', d => (d.target as GraphNode).x!)
+        .attr('y2', d => (d.target as GraphNode).y!)
+
+      nodes.attr('transform', d => `translate(${d.x},${d.y})`)
+    })
+
+    // 拖拽函数
+    function dragstarted(event: d3.D3DragEvent<SVGGElement, GraphNode, unknown>, d: GraphNode) {
+      if (!event.active) simulation.alphaTarget(0.3).restart()
+      d.fx = d.x
+      d.fy = d.y
+    }
+
+    function dragged(event: d3.D3DragEvent<SVGGElement, GraphNode, unknown>, d: GraphNode) {
+      d.fx = event.x
+      d.fy = event.y
+    }
+
+    function dragended(event: d3.D3DragEvent<SVGGElement, GraphNode, unknown>, d: GraphNode) {
+      if (!event.active) simulation.alphaTarget(0)
+      d.fx = null
+      d.fy = null
+    }
+
+    // 清理函数
+    return () => {
+      simulation.stop()
+    }
+  }, [data])
+
+  return <svg ref={svgRef} className="w-full" />
+}
+
+// 主组件
 export default function CategoryView() {
-  const [viewMode, setViewMode] = useState<'tree' | '3d'>('tree')
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(['root']))
-  const graphRef = useRef<HTMLDivElement>(null)
+  const [viewMode, setViewMode] = React.useState<'tree' | 'graph'>('tree')
+  const [expandedNodes, setExpandedNodes] = React.useState<Set<string>>(new Set(['root']))
 
   // 处理节点展开/收起
   const toggleNode = (nodeId: string) => {
@@ -121,7 +244,7 @@ export default function CategoryView() {
             />
           )}
           <div
-            className={`w-2 h-2 rounded-full`}
+            className="w-2 h-2 rounded-full"
             style={{ backgroundColor: node.color }}
           />
           <span className="flex-1">{node.name}</span>
@@ -138,34 +261,8 @@ export default function CategoryView() {
     )
   }
 
-  // 修改3D图谱初始化逻辑
-  useEffect(() => {
-    if (viewMode === '3d' && graphRef.current) {
-      const graphData = convertToGraphData(categoryData)
-      
-      const Graph = new ForceGraph3D()(graphRef.current)
-        .graphData(graphData)
-        .nodeLabel((node: GraphNode) => node.name)
-        .nodeColor((node: GraphNode) => node.color)
-        .linkColor(() => 'rgba(255, 255, 255, 0.2)')
-        .backgroundColor('rgba(0,0,0,0)')
-        .width(graphRef.current.clientWidth)
-        .height(300)
-
-      const handleResize = () => {
-        if (graphRef.current) {
-          Graph.width(graphRef.current.clientWidth)
-        }
-      }
-
-      window.addEventListener('resize', handleResize)
-
-      return () => {
-        window.removeEventListener('resize', handleResize)
-        Graph.dispose()
-      }
-    }
-  }, [viewMode])
+  // 准备图谱数据
+  const graphData = convertToGraphData(categoryData)
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-4">
@@ -182,9 +279,9 @@ export default function CategoryView() {
           </button>
           <button
             className={`p-2 rounded-lg transition-colors ${
-              viewMode === '3d' ? 'bg-primary text-white' : 'hover:bg-secondary'
+              viewMode === 'graph' ? 'bg-primary text-white' : 'hover:bg-secondary'
             }`}
-            onClick={() => setViewMode('3d')}
+            onClick={() => setViewMode('graph')}
           >
             <FiGrid size={18} />
           </button>
@@ -196,7 +293,9 @@ export default function CategoryView() {
           {renderTreeNode(categoryData)}
         </div>
       ) : (
-        <div key="3d" ref={graphRef} className="w-full h-[300px]" />
+        <div key="graph" className="w-full h-[400px]">
+          <KnowledgeGraph data={graphData} />
+        </div>
       )}
     </div>
   )
