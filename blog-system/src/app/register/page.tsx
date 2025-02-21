@@ -54,7 +54,8 @@ export default function RegisterPage() {
       number: {
         density: {
           enable: true,
-          area: 800,
+          width: 800,
+          height: 800,
         },
         value: 40,
       },
@@ -63,7 +64,7 @@ export default function RegisterPage() {
         animation: {
           enable: true,
           speed: 1,
-          minimumValue: 0.1,
+          startValue: 0.1,
         },
       },
       shape: {
@@ -74,7 +75,7 @@ export default function RegisterPage() {
         animation: {
           enable: true,
           speed: 2,
-          minimumValue: 0.1,
+          startValue: 0.1,
         },
       },
       twinkle: {
@@ -106,7 +107,7 @@ export default function RegisterPage() {
 
       <Particles
         id="tsparticles"
-        particlesInit={particlesInit}
+        init={particlesInit}
         options={particlesOptions}
         className="absolute inset-0 -z-10"
       />
