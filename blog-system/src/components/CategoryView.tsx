@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { FiChevronRight, FiGrid, FiList } from 'react-icons/fi'
 import ForceGraph3D from '3d-force-graph'
-import * as THREE from 'three'
 import { ForceGraph3DInstance } from '3d-force-graph'
 
 // 定义类型以避免使用 any
@@ -93,7 +92,6 @@ export default function CategoryView() {
   const [viewMode, setViewMode] = useState<'tree' | '3d'>('tree')
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(['root']))
   const graphRef = useRef<HTMLDivElement>(null)
-  const graphInstanceRef = useRef<ForceGraph3DInstance>(null)
 
   // 处理节点展开/收起
   const toggleNode = (nodeId: string) => {
@@ -146,7 +144,6 @@ export default function CategoryView() {
     if (viewMode === '3d' && graphRef.current) {
       const graphData = convertToGraphData(categoryData)
       
-      // 创建图谱实例
       const Graph = new ForceGraph3D()(graphRef.current)
         .graphData(graphData)
         .nodeLabel((node: GraphNode) => node.name)
@@ -156,7 +153,6 @@ export default function CategoryView() {
         .width(graphRef.current.clientWidth)
         .height(300)
 
-      // 添加窗口大小变化监听
       const handleResize = () => {
         if (graphRef.current) {
           Graph.width(graphRef.current.clientWidth)
@@ -165,7 +161,6 @@ export default function CategoryView() {
 
       window.addEventListener('resize', handleResize)
 
-      // 清理函数
       return () => {
         window.removeEventListener('resize', handleResize)
         Graph.dispose()

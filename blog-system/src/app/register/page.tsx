@@ -3,7 +3,7 @@
 import React, { useCallback, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { FiSun, FiMoon } from 'react-icons/fi'
-import type { Container, Engine } from 'tsparticles-engine'
+import type { Engine } from 'tsparticles-engine'
 import Particles from '@tsparticles/react'
 import { loadSlim } from '@tsparticles/slim'
 
