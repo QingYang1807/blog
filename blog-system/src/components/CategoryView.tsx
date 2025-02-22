@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from 'react'
 import { FiChevronRight, FiGrid, FiList } from 'react-icons/fi'
 import * as d3 from 'd3'
 import LoginCard from './LoginCard'
+import Cookies from 'js-cookie'
 
 // 定义类型
 interface CategoryNode {
@@ -259,13 +260,17 @@ function KnowledgeGraph({ data }: { data: { nodes: GraphNode[], links: GraphLink
   return <svg ref={svgRef} className="w-full" />
 }
 
-// 主组件
-export default function CategoryView() {
+// 修改 CategoryView 组件接收 props
+interface CategoryViewProps {
+  userInfo: { username: string; avatar?: string } | null;
+  onLogout: () => void;
+}
+
+export default function CategoryView({ userInfo, onLogout }: CategoryViewProps) {
   const [viewMode, setViewMode] = React.useState<'tree' | 'graph'>('tree')
   const [expandedNodes, setExpandedNodes] = React.useState<Set<string>>(new Set(['root']))
-  const [isLoggedIn, setIsLoggedIn] = React.useState(false)
-  const [user, setUser] = React.useState<User | null>(null)
   const [isLoading, setIsLoading] = React.useState(false)
+  const [user, setUser] = React.useState<User | null>(null)
 
   // 处理登录
   const HandleLogin = async (form: LoginForm) => {
@@ -273,9 +278,13 @@ export default function CategoryView() {
       setIsLoading(true)
       const userData = await mockApi.login(form)
       if (userData) {
+        // 保存登录状态到 Cookie
+        Cookies.set('userInfo', JSON.stringify({
+          username: form.username,
+          avatar: userData.avatar
+        }))
         setUser(userData)
-        setIsLoggedIn(true)
-        // TODO: 保存登录状态到 localStorage 或 Cookie
+        window.location.reload() // 刷新页面以更新所有组件
       }
     } catch (error) {
       console.error('登录失败:', error)
@@ -284,12 +293,19 @@ export default function CategoryView() {
     }
   }
 
-  // 处理登出
-  const HandleLogout = () => {
-    setUser(null)
-    setIsLoggedIn(false)
-    // TODO: 清除 localStorage 或 Cookie 中的登录状态
-  }
+  // 更新 useEffect，使用传入的 userInfo
+  useEffect(() => {
+    if (userInfo) {
+      setUser({
+        name: userInfo.username,
+        avatar: userInfo.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+        badges: [
+          { id: "1", name: "精选作者", icon: "🏆" },
+          { id: "2", name: "活跃用户", icon: "⭐" }
+        ]
+      })
+    }
+  }, [userInfo])
 
   // 处理节点展开/收起
   const toggleNode = (nodeId: string) => {
@@ -342,8 +358,7 @@ export default function CategoryView() {
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-4">
-      {isLoggedIn && user ? (
-        // 已登录状态：显示用户信息
+      {user ? (
         <div className="mb-4 p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -351,7 +366,7 @@ export default function CategoryView() {
                 src={user.avatar} 
                 alt={user.name}
                 className="w-12 h-12 rounded-full border-2 border-primary cursor-pointer"
-                onClick={HandleLogout}
+                onClick={onLogout}
                 title="点击退出登录"
               />
               <div>
@@ -371,7 +386,6 @@ export default function CategoryView() {
           </div>
         </div>
       ) : (
-        // 未登录状态：显示登录卡片
         <LoginCard onLogin={HandleLogin} isLoading={isLoading} />
       )}
 

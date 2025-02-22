@@ -1,12 +1,28 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { FiFeather, FiGithub, FiTwitter } from 'react-icons/fi'
+import { FiFeather, FiGithub, FiTwitter, FiEdit, FiSettings, FiUser, FiLogOut, FiDatabase } from 'react-icons/fi'
 import CategoryView from '@/components/CategoryView'
 import Announcement from '@/components/Announcement'
+import Cookies from 'js-cookie'
 
 export default function HomePage() {
+  const [user, setUser] = useState<{ username: string; avatar?: string } | null>(null)
+
+  useEffect(() => {
+    const userInfo = Cookies.get('userInfo')
+    if (userInfo) {
+      setUser(JSON.parse(userInfo))
+    }
+  }, [])
+
+  const handleLogout = () => {
+    Cookies.remove('userInfo')
+    setUser(null)
+    window.location.reload() // 刷新页面以更新所有组件
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* 导航栏 */}
@@ -22,6 +38,72 @@ export default function HomePage() {
             <Link href="/articles" className="hover:text-primary transition-colors">文章</Link>
             <Link href="/categories" className="hover:text-primary transition-colors">分类</Link>
             <Link href="/about" className="hover:text-primary transition-colors">关于</Link>
+            
+            {user ? (
+              <div className="relative group">
+                <button 
+                  className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/20 group-hover:border-primary transition-colors"
+                >
+                  <img 
+                    src={user.avatar || "/avatar-placeholder.jpg"}
+                    alt="用户头像" 
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+                
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-800 rounded-lg shadow-lg py-2 border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 hover:opacity-100 hover:visible">
+                  {/* 添加欢迎提示语 */}
+                  <div className="px-4 py-2 border-b border-border">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">你好，</div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100">{user.username}</div>
+                  </div>
+                  
+                  <Link 
+                    href="/write" 
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-primary hover:text-white dark:hover:text-white transition-colors"
+                  >
+                    <FiEdit className="w-4 h-4" />
+                    发表文章
+                  </Link>
+                  <Link 
+                    href="/dashboard" 
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-primary hover:text-white dark:hover:text-white transition-colors"
+                  >
+                    <FiDatabase className="w-4 h-4" />
+                    后台管理
+                  </Link>
+                  <Link 
+                    href="/profile" 
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-primary hover:text-white dark:hover:text-white transition-colors"
+                  >
+                    <FiUser className="w-4 h-4" />
+                    个人资料
+                  </Link>
+                  <Link 
+                    href="/settings" 
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-primary hover:text-white dark:hover:text-white transition-colors"
+                  >
+                    <FiSettings className="w-4 h-4" />
+                    设置
+                  </Link>
+                  <hr className="my-2 border-border" />
+                  <button 
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-500 hover:text-white transition-colors w-full text-left"
+                    onClick={handleLogout}
+                  >
+                    <FiLogOut className="w-4 h-4" />
+                    退出登录
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <Link 
+                href="/login" 
+                className="px-4 py-1.5 rounded-full border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all duration-300 text-sm font-medium"
+              >
+                登录
+              </Link>
+            )}
           </div>
         </div>
       </nav>
@@ -67,7 +149,7 @@ export default function HomePage() {
           </div>
 
           <div className="w-full md:w-80 space-y-6">
-            <CategoryView />
+            <CategoryView userInfo={user} onLogout={handleLogout} />
 
             {/* 订阅卡片 */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-4">

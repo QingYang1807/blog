@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
+import Cookies from 'js-cookie'
 
 interface LoginCardProps {
   onLogin: (form: { username: string; password: string }) => Promise<void>
@@ -20,7 +21,19 @@ export default function LoginCard({ onLogin, isLoading }: LoginCardProps) {
   }
 
   const handleDemoLogin = async () => {
-    await onLogin({ username: 'demo', password: 'password' })
+    const demoUser = {
+      username: 'demo',
+      password: 'password',
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix' // 可以设置默认头像
+    }
+    
+    // 保存用户信息到 cookie
+    Cookies.set('userInfo', JSON.stringify({
+      username: demoUser.username,
+      avatar: demoUser.avatar
+    }), { expires: 7 }) // 7天过期
+    
+    await onLogin({ username: demoUser.username, password: demoUser.password })
   }
 
   return (
