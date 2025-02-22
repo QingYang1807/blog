@@ -1,10 +1,11 @@
 'use client'
 
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useCallback, useState } from 'react'
 import { FiChevronRight, FiGrid, FiList } from 'react-icons/fi'
 import * as d3 from 'd3'
 import LoginCard from './LoginCard'
 import Cookies from 'js-cookie'
+import Image from 'next/image';
 
 // 定义类型
 interface CategoryNode {
@@ -274,10 +275,11 @@ export default function CategoryView({
   onCategorySelect,
   selectedCategories = []
 }: CategoryViewProps) {
-  const [viewMode, setViewMode] = React.useState<'tree' | 'graph'>('tree')
-  const [expandedNodes, setExpandedNodes] = React.useState<Set<string>>(new Set(['root']))
-  const [isLoading, setIsLoading] = React.useState(false)
-  const [user, setUser] = React.useState<User | null>(null)
+  const [viewMode, setViewMode] = useState<'tree' | 'graph'>('tree')
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(['root']))
+  const [isFullscreen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [user, setUser] = useState<User | null>(null)
 
   // 处理登录
   const HandleLogin = async (form: LoginForm) => {
@@ -326,15 +328,15 @@ export default function CategoryView({
   }
 
   // 处理分类选择
-  const HandleCategorySelect = (categoryId: string) => {
+  const HandleCategorySelect = useCallback((category: string) => {
     if (!onCategorySelect) return;
     
-    const newSelected = selectedCategories.includes(categoryId)
-      ? selectedCategories.filter(id => id !== categoryId)
-      : [...selectedCategories, categoryId];
+    const newSelected = selectedCategories.includes(category)
+      ? selectedCategories.filter(id => id !== category)
+      : [...selectedCategories, category];
     
     onCategorySelect(newSelected);
-  }
+  }, [onCategorySelect, selectedCategories]);
 
   // 修改树形节点渲染函数
   const renderTreeNode = (node: CategoryNode, level: number = 0) => {
@@ -384,19 +386,35 @@ export default function CategoryView({
   // 准备图谱数据
   const graphData = convertToGraphData(categoryData)
 
+  useEffect(() => {
+    // ... existing code ...
+  }, [viewMode, selectedCategories, isFullscreen, HandleCategorySelect])
+
+  // Custom loader for SVGs
+  const customLoader = ({ src }: { src: string }) => {
+    return src;
+  };
+
+  const Avatar = ({ user, onLogout }: { user: User, onLogout: () => void }) => (
+    <Image
+      src={user.avatar} // Your SVG URL
+      alt={user.name}
+      width={48}
+      height={48}
+      className="w-12 h-12 rounded-full border-2 border-primary cursor-pointer"
+      onClick={onLogout}
+      title="点击退出登录"
+      loader={customLoader} // Add the custom loader here
+    />
+  );
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-4">
       {user ? (
         <div className="mb-4 p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <img 
-                src={user.avatar} 
-                alt={user.name}
-                className="w-12 h-12 rounded-full border-2 border-primary cursor-pointer"
-                onClick={onLogout}
-                title="点击退出登录"
-              />
+              <Avatar user={user} onLogout={onLogout} />
               <div>
                 <h4 className="font-medium text-lg">{user.name}</h4>
                 <div className="flex gap-2 mt-1">

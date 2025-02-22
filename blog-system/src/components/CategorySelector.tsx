@@ -141,6 +141,7 @@ export default function CategorySelector({ onCategorySelect, selectedCategories 
 
   // 将树形数据转换为图谱数据
   const convertToGraphData = (tree: CategoryNode) => {
+    console.log(tree)
     const nodes: GraphNode[] = []
     const links: GraphLink[] = []
     

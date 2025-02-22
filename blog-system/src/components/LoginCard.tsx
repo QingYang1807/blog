@@ -24,7 +24,7 @@ export default function LoginCard({ onLogin, isLoading }: LoginCardProps) {
     const demoUser = {
       username: 'demo',
       password: 'password',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix' // 可以设置默认头像
+      avatar: '../../public/images/default-avatar.svg' // 可以设置默认头像
     }
     
     // 保存用户信息到 cookie

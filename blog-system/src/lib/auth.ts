@@ -27,7 +27,7 @@ export async function getAuth(): Promise<AuthInfo | null> {
   }
 }
 
-export async function setAuth(token: string, userInfo: any) {
+export async function setAuth(token: string, userInfo: string) {
   Cookies.set('token', token)
   Cookies.set('userInfo', JSON.stringify(userInfo))
 }
