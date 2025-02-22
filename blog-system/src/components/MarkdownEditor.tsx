@@ -4,8 +4,6 @@ import { useEffect, useRef } from 'react'
 import 'cherry-markdown/dist/cherry-markdown.css'
 import Cherry from 'cherry-markdown/dist/cherry-markdown.core'
 import 'cherry-markdown/dist/cherry-markdown.css';
-import CherryMermaidPlugin from 'cherry-markdown/dist/addons/cherry-code-block-mermaid-plugin';
-import mermaid from 'mermaid';
 
 
 interface MarkdownEditorProps {
