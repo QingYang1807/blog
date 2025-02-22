@@ -15,7 +15,7 @@ export default function HomePage() {
           <Link href="/" className="text-xl font-bold flex items-center gap-2">
             <FiFeather className="text-primary" />
             <span className="bg-gradient-to-r from-primary to-purple-600 text-transparent bg-clip-text">
-              TechBlog
+              QingYang`s Blog
             </span>
           </Link>
           <div className="flex gap-6 items-center">
@@ -111,7 +111,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-sm text-muted-foreground">
-              © 2024 TechBlog. 保留所有权利.
+              © 2025 QingYang`s Blog. 保留所有权利.
             </div>
             <div className="flex gap-6">
               <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">隐私政策</Link>
