@@ -1,14 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import remarkMath from 'remark-math'
-import rehypeKatex from 'rehype-katex'
-import { 
-  BiBold, BiItalic, BiHeading, 
-  BiLink, BiImage, BiListUl, BiCode
-} from 'react-icons/bi'
+import { useEffect, useRef } from 'react'
+import 'cherry-markdown/dist/cherry-markdown.css'
+import Cherry from 'cherry-markdown/dist/cherry-markdown.core'
+import 'cherry-markdown/dist/cherry-markdown.css';
+import CherryMermaidPlugin from 'cherry-markdown/dist/addons/cherry-code-block-mermaid-plugin';
+import mermaid from 'mermaid';
+
 
 interface MarkdownEditorProps {
   value: string
@@ -16,163 +14,75 @@ interface MarkdownEditorProps {
 }
 
 export default function MarkdownEditor({ value, onChange }: MarkdownEditorProps) {
-  const [isPreview, setIsPreview] = useState(false)
+  const editorRef = useRef<Cherry | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
-  const HandleToolbarAction = (type: string) => {
-    const textarea = document.querySelector('textarea')
-    if (!textarea) return
+  useEffect(() => {
+    if (!containerRef.current || editorRef.current) return
 
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const text = textarea.value
-    let newText = ''
+    // 初始化 Cherry 编辑器
+    editorRef.current = new Cherry({
+      id: 'cherry-markdown',
+      value: value,
+      editor: {
+        defaultModel: 'edit&preview',
+        height: '500px',
+      },
+      toolbars: {
+        // 定义顶部工具栏
+        toolbar: ['undo', 'redo', '|', 'bold','italic','strikethrough', 'size', '|','color','header','ruby','|','list', 'checklist', 'panel', 'justify', 'detail', '|', 'formula', 'insert', 'graph', 'switchModel', 'export', '|', 'publish', 'h1', 'h2', 'h3', '|', 'link', 'image', 'audio', 'video', 'formula', 'detail', '|', 'toc', '|', 'quote', 'table', 'code', 'drawIo', '|', 'fullScreen', '|', 'wordCount', '|', 'settings', '|', 'togglePreview', '|', 'mobilePreview'],
+        // 定义选中文字时弹出的“悬浮工具栏”，默认为 ['bold', 'italic', 'underline', 'strikethrough', 'sub', 'sup', 'quote', '|', 'size', 'color']
+        bubble: ['bold', 'italic', 'underline', 'strikethrough', 'sub', 'sup', 'quote', '|', 'size', 'color'],
+        // 定义光标出现在行首位置时出现的“提示工具栏”，默认为 ['h1', 'h2', 'h3', '|', 'checklist', 'quote', 'table', 'code']
+        float: ['h1', 'h2', 'h3', '|', 'list', 'panel', 'quote', 'table', 'code', '|', 'formula', 'detail', '|', 'undo', 'redo']
+      },
+      engine: {
+        global: {
+          urlProcessor: (url: string) => url,
+        },
+        syntax: {
+          codeBlock: {
+            lineNumber: true,
+            copyCode: true,
+          },
+          table: {
+            enableChart: false,  // 暂时禁用图表功能
+          },
+        }
+      },
+      callback: {
+        afterChange: (markdown: string) => {
+          onChange(markdown)
+        },
+      },
+      fileUpload: (file: File, callback: (urls: string) => void) => {
+        // TODO: 实现图片上传
+        console.log('上传图片:', file)
+        callback('https://example.com/image.png')
+      },
+      previewer: {
+        dom: false,
+        className: 'cherry-markdown'
+      },
+      locale: 'zh_CN',
+    })
 
-    switch (type) {
-      case 'bold':
-        newText = `${text.slice(0, start)}**${text.slice(start, end) || '粗体文字'}**${text.slice(end)}`
-        break
-      case 'italic':
-        newText = `${text.slice(0, start)}_${text.slice(start, end) || '斜体文字'}_${text.slice(end)}`
-        break
-      case 'heading':
-        newText = `${text.slice(0, start)}### ${text.slice(start, end) || '标题'}${text.slice(end)}`
-        break
-      case 'link':
-        newText = `${text.slice(0, start)}[${text.slice(start, end) || '链接文字'}](url)${text.slice(end)}`
-        break
-      case 'image':
-        newText = `${text.slice(0, start)}![${text.slice(start, end) || '图片描述'}](url)${text.slice(end)}`
-        break
-      case 'list':
-        newText = `${text.slice(0, start)}\n- ${text.slice(start, end) || '列表项'}\n${text.slice(end)}`
-        break
-      case 'code':
-        newText = `${text.slice(0, start)}\`\`\`\n${text.slice(start, end) || '代码块'}\n\`\`\`${text.slice(end)}`
-        break
+    return () => {
+      editorRef.current?.destroy()
+      editorRef.current = null
     }
+  })
 
-    onChange(newText)
-  }
-
-  const HandleQuickCommand = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && value.endsWith('\n[[AI]]')) {
-      e.preventDefault()
-      // 调用 AI 续写功能
-      HandleAIComplete()
+  // 更新编辑器内容
+  useEffect(() => {
+    if (editorRef.current && value !== editorRef.current.getValue()) {
+      editorRef.current.setValue(value)
     }
-  }
-
-  const HandleAIComplete = async () => {
-    try {
-      const response = await fetch('/api/ai/complete', {
-        method: 'POST',
-        body: JSON.stringify({ content: value.replace('\n[[AI]]', '') })
-      })
-      const data = await response.json()
-      onChange(value.replace('\n[[AI]]', '') + '\n' + data.completion)
-    } catch (error) {
-      console.error('AI 续写失败:', error)
-    }
-  }
+  }, [value])
 
   return (
     <div className="border rounded-lg overflow-hidden bg-white shadow-lg">
-      <div className="flex justify-between border-b p-2 bg-gray-50">
-        <div className="flex space-x-2">
-          <button
-            onClick={() => HandleToolbarAction('bold')}
-            className="p-2 hover:bg-gray-200 rounded"
-            title="粗体 (Ctrl+B)"
-          >
-            <BiBold />
-          </button>
-          <button
-            onClick={() => HandleToolbarAction('italic')}
-            className="p-2 hover:bg-gray-200 rounded"
-            title="斜体 (Ctrl+I)"
-          >
-            <BiItalic />
-          </button>
-          <button
-            onClick={() => HandleToolbarAction('heading')}
-            className="p-2 hover:bg-gray-200 rounded"
-            title="标题"
-          >
-            <BiHeading />
-          </button>
-          <div className="border-r mx-2" />
-          <button
-            onClick={() => HandleToolbarAction('link')}
-            className="p-2 hover:bg-gray-200 rounded"
-            title="链接"
-          >
-            <BiLink />
-          </button>
-          <button
-            onClick={() => HandleToolbarAction('image')}
-            className="p-2 hover:bg-gray-200 rounded"
-            title="图片"
-          >
-            <BiImage />
-          </button>
-          <button
-            onClick={() => HandleToolbarAction('list')}
-            className="p-2 hover:bg-gray-200 rounded"
-            title="列表"
-          >
-            <BiListUl />
-          </button>
-          <button
-            onClick={() => HandleToolbarAction('code')}
-            className="p-2 hover:bg-gray-200 rounded"
-            title="代码块"
-          >
-            <BiCode />
-          </button>
-        </div>
-        <div className="flex">
-          <button
-            className={`px-4 py-1 rounded ${!isPreview ? 'bg-blue-500 text-white' : 'hover:bg-gray-200'}`}
-            onClick={() => setIsPreview(false)}
-          >
-            编辑
-          </button>
-          <button
-            className={`px-4 py-1 rounded ml-2 ${isPreview ? 'bg-blue-500 text-white' : 'hover:bg-gray-200'}`}
-            onClick={() => setIsPreview(true)}
-          >
-            预览
-          </button>
-        </div>
-      </div>
-
-      <div className="relative">
-        {!isPreview ? (
-          <textarea
-            className="w-full h-[500px] p-4 focus:outline-none resize-none"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            onKeyDown={HandleQuickCommand}
-            placeholder="在这里用 Markdown 写作...
-
-快捷指令:
-[[AI]] - AI 续写
->toc - 生成目录
-@date - 插入当前日期
-"
-          />
-        ) : (
-          <div className="prose max-w-none p-4 min-h-[500px]">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm, remarkMath]}
-              rehypePlugins={[rehypeKatex]}
-            >
-              {value}
-            </ReactMarkdown>
-          </div>
-        )}
-      </div>
-
+      <div ref={containerRef} id="cherry-markdown" className="min-h-[500px]" />
       <div className="border-t p-2 text-sm text-gray-500 bg-gray-50">
         字数统计: {value.length} | 预计阅读时间: {Math.max(1, Math.ceil(value.length / 400))} 分钟
       </div>
