@@ -8,6 +8,8 @@ import {
   FiEye, 
   FiClock, 
   FiGlobe, 
+  FiLock, 
+  FiUsers,
   FiCalendar,
   FiMessageSquare
 } from 'react-icons/fi'

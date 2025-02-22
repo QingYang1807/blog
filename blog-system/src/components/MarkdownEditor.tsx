@@ -6,8 +6,8 @@ import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 import { 
-  BiBold, BiItalic, BiHeading, 
-  BiLink, BiImage, BiListUl, BiCode
+  BiBold, BiItalic, BiStrikethrough, BiHeading, 
+  BiLink, BiImage, BiListUl, BiListOl, BiCode
 } from 'react-icons/bi'
 
 interface MarkdownEditorProps {
@@ -17,6 +17,7 @@ interface MarkdownEditorProps {
 
 export default function MarkdownEditor({ value, onChange }: MarkdownEditorProps) {
   const [isPreview, setIsPreview] = useState(false)
+  const [selectedText, setSelectedText] = useState('')
 
   const HandleToolbarAction = (type: string) => {
     const textarea = document.querySelector('textarea')
