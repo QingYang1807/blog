@@ -1,3 +1,5 @@
+import { D1Database } from '@cloudflare/workers-types'
+
 interface Env {
   DB: D1Database
 }
@@ -24,10 +26,11 @@ export async function HandleCreatePost(request: Request, env: Env) {
       headers: { 'Content-Type': 'application/json' }
     })
 
-  } catch (error) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message  : 'Unknown server error'
     return new Response(JSON.stringify({
       success: false,
-      error: '保存文章失败'
+      error: `保存文章失败: ${message}`
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
