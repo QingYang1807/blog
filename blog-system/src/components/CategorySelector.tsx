@@ -140,7 +140,7 @@ export default function CategorySelector({ onCategorySelect, selectedCategories 
   }
 
   // 将树形数据转换为图谱数据
-  const convertToGraphData = (tree: CategoryNode) => {
+  const convertToGraphData = (rootNode: CategoryNode) => {
     const nodes: GraphNode[] = []
     const links: GraphLink[] = []
     
@@ -162,7 +162,7 @@ export default function CategorySelector({ onCategorySelect, selectedCategories 
       node.children?.forEach(child => traverse(child, node.id))
     }
     
-    traverse(categoryData)
+    traverse(rootNode)
     return { nodes, links }
   }
 
@@ -278,7 +278,7 @@ export default function CategorySelector({ onCategorySelect, selectedCategories 
     return () => {
       simulation.stop()
     }
-  }, [viewMode, selectedCategories, isFullscreen])
+  }, [viewMode, selectedCategories, isFullscreen, HandleCategorySelect])
 
   // 全屏预览模态框
   const FullscreenModal = () => (

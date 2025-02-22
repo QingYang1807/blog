@@ -5,6 +5,7 @@ import { FiChevronRight, FiGrid, FiList } from 'react-icons/fi'
 import * as d3 from 'd3'
 import LoginCard from './LoginCard'
 import Cookies from 'js-cookie'
+import Image from 'next/image'
 
 // 定义类型
 interface CategoryNode {
@@ -390,10 +391,12 @@ export default function CategoryView({
         <div className="mb-4 p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <img 
+              <Image 
                 src={user.avatar} 
                 alt={user.name}
-                className="w-12 h-12 rounded-full border-2 border-primary cursor-pointer"
+                width={48}
+                height={48}
+                className="rounded-full border-2 border-primary cursor-pointer"
                 onClick={onLogout}
                 title="点击退出登录"
               />
