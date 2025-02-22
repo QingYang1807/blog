@@ -264,9 +264,16 @@ function KnowledgeGraph({ data }: { data: { nodes: GraphNode[], links: GraphLink
 interface CategoryViewProps {
   userInfo: { username: string; avatar?: string } | null;
   onLogout: () => void;
+  onCategorySelect?: (categories: string[]) => void;
+  selectedCategories?: string[];
 }
 
-export default function CategoryView({ userInfo, onLogout }: CategoryViewProps) {
+export default function CategoryView({ 
+  userInfo, 
+  onLogout,
+  onCategorySelect,
+  selectedCategories = []
+}: CategoryViewProps) {
   const [viewMode, setViewMode] = React.useState<'tree' | 'graph'>('tree')
   const [expandedNodes, setExpandedNodes] = React.useState<Set<string>>(new Set(['root']))
   const [isLoading, setIsLoading] = React.useState(false)
@@ -318,17 +325,35 @@ export default function CategoryView({ userInfo, onLogout }: CategoryViewProps) 
     setExpandedNodes(newExpanded)
   }
 
-  // 渲染树形节点
+  // 处理分类选择
+  const HandleCategorySelect = (categoryId: string) => {
+    if (!onCategorySelect) return;
+    
+    const newSelected = selectedCategories.includes(categoryId)
+      ? selectedCategories.filter(id => id !== categoryId)
+      : [...selectedCategories, categoryId];
+    
+    onCategorySelect(newSelected);
+  }
+
+  // 修改树形节点渲染函数
   const renderTreeNode = (node: CategoryNode, level: number = 0) => {
     const isExpanded = expandedNodes.has(node.id)
     const hasChildren = node.children && node.children.length > 0
+    const isSelected = selectedCategories.includes(node.id)
 
     return (
       <div key={node.id} className="select-none">
         <div
-          className="flex items-center gap-2 p-2 rounded-lg hover:bg-secondary transition-colors cursor-pointer"
+          className={`flex items-center gap-2 p-2 rounded-lg transition-colors cursor-pointer
+            ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
           style={{ paddingLeft: `${level * 1.5 + 0.5}rem` }}
-          onClick={() => hasChildren && toggleNode(node.id)}
+          onClick={() => {
+            if (hasChildren) {
+              toggleNode(node.id)
+            }
+            HandleCategorySelect(node.id)
+          }}
         >
           {hasChildren && (
             <FiChevronRight
@@ -342,6 +367,9 @@ export default function CategoryView({ userInfo, onLogout }: CategoryViewProps) 
           <span className="flex-1">{node.name}</span>
           {node.count && (
             <span className="text-sm text-muted-foreground">{node.count}</span>
+          )}
+          {isSelected && (
+            <span className="text-blue-500">✓</span>
           )}
         </div>
         {isExpanded && node.children && (
