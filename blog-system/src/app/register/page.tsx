@@ -2,12 +2,22 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { FiSun, FiMoon } from 'react-icons/fi'
 import Particles from '@tsparticles/react'
 import type { ISourceOptions, OutMode } from '@tsparticles/engine'
+import Cookies from 'js-cookie'
 
 export default function RegisterPage() {
+  const router = useRouter()
   const [theme, setTheme] = useState<'light' | 'dark'>('dark')
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  })
+  const [error, setError] = useState('')
   
   // 初始化主题
   useEffect(() => {
@@ -82,6 +92,69 @@ export default function RegisterPage() {
     },
   }
 
+  const HandleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const HandleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+
+    // 表单验证
+    if (formData.password !== formData.confirmPassword) {
+      setError('两次输入的密码不一致')
+      return
+    }
+
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || '注册失败，请重试')
+      }
+
+      const data = await response.json()
+      console.log(data)
+      // 保存登录信息
+      localStorage.setItem('userInfo', JSON.stringify({
+        username: formData.username,
+        email: formData.email
+      }))
+      
+      // 保存用户信息到 cookie
+      Cookies.set('userInfo', JSON.stringify({
+        username: formData.username,
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + formData.username
+      }), { expires: 7 }) // 7天过期
+      
+      // 跳转到首页
+      router.push('/')
+      
+    } catch (err) {
+      console.error('注册错误:', err)
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError('注册过程中发生错误，请稍后重试')
+      }
+    }
+  }
+
   return (
     <div className={`min-h-screen relative flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 
       ${theme === 'dark' 
@@ -146,13 +219,21 @@ export default function RegisterPage() {
             </h2>
           </div>
 
-          <form className="space-y-4 relative" onSubmit={(e) => e.preventDefault()}>
+          {error && (
+            <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500">
+              {error}
+            </div>
+          )}
+
+          <form className="space-y-4 relative" onSubmit={HandleSubmit}>
             <div className="group">
               <input
                 id="username"
                 name="username"
                 type="text"
                 required
+                value={formData.username}
+                onChange={HandleInputChange}
                 className={`w-full px-4 py-2.5 
                   ${theme === 'dark' ? 'bg-white/5 text-white placeholder-white/50' : 'bg-white/40 text-gray-800 placeholder-gray-500'} 
                   border ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} 
@@ -168,6 +249,8 @@ export default function RegisterPage() {
                 name="email"
                 type="email"
                 required
+                value={formData.email}
+                onChange={HandleInputChange}
                 className={`w-full px-4 py-2.5 
                   ${theme === 'dark' ? 'bg-white/5 text-white placeholder-white/50' : 'bg-white/40 text-gray-800 placeholder-gray-500'} 
                   border ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} 
@@ -183,6 +266,8 @@ export default function RegisterPage() {
                 name="password"
                 type="password"
                 required
+                value={formData.password}
+                onChange={HandleInputChange}
                 className={`w-full px-4 py-2.5 
                   ${theme === 'dark' ? 'bg-white/5 text-white placeholder-white/50' : 'bg-white/40 text-gray-800 placeholder-gray-500'} 
                   border ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} 
@@ -198,6 +283,8 @@ export default function RegisterPage() {
                 name="confirmPassword"
                 type="password"
                 required
+                value={formData.confirmPassword}
+                onChange={HandleInputChange}
                 className={`w-full px-4 py-2.5 
                   ${theme === 'dark' ? 'bg-white/5 text-white placeholder-white/50' : 'bg-white/40 text-gray-800 placeholder-gray-500'} 
                   border ${theme === 'dark' ? 'border-white/10' : 'border-gray-200'} 
@@ -229,4 +316,4 @@ export default function RegisterPage() {
       </div>
     </div>
   )
-} 
+}
